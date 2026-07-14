@@ -111,7 +111,7 @@
 
     <div class="discord-sidebar w-72 p-4 flex-shrink-0 flex flex-col hidden md:flex">
         <div class="text-xl font-bold mb-6 text-white flex items-center gap-2">
-            <i class="fa-solid fa-engine text-blue-500"></i> WNZY MODIFY ANALYSIS
+            <i class="fa-solid fa-engine text-blue-500"></i> AOMMY MODIFY ANALYSIS
         </div>
         <nav class="flex-grow">
             <div class="nav-item active" onclick="showTab('tab-engine')">1. กำหนดเป้าหมาย & CC</div>
@@ -445,7 +445,7 @@
             <div id="capture-area" class="shadow-2xl">
                 <div class="text-center mb-6 border-b border-gray-700 pb-4">
                     <h2 class="text-xl font-bold text-white tracking-widest uppercase">Engine build data sheet</h2>
-                    <p class="text-[9px] text-blue-400 uppercase tracking-widest">WNZY MODIFY ANALYSIS</p>
+                    <p class="text-[9px] text-blue-400 uppercase tracking-widest">AOMMY MODIFY ANALYSIS</p>
                 </div>
 
                 <div class="space-y-3">
@@ -643,7 +643,7 @@
             const area = document.getElementById('capture-area');
             html2canvas(area, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `WNZY_EngineBuildSheet_${new Date().getTime()}.png`;
+                link.download = `AOMMY_EngineBuildSheet_${new Date().getTime()}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             });
