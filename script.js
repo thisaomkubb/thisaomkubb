@@ -1,4 +1,4 @@
-const text = "WNZY PROJECT OFFICIAL";
+const text = "AOMMY PROJECT";
 const typingText = document.getElementById('typing-text');
 const splashScreen = document.getElementById('splash-screen');
 const mainContent = document.getElementById('main-content');
