@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNSS Viewer Tutorial</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* ✅ ฟอนต์ WhatsApp */
+body {
+  background-color: #0b1014;
+  color: #fff;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.step {
+  margin-bottom: 40px;
+}
+
+.step video {
+  width: 100%;
+  max-width: 400px; /* 👈 เพิ่มบรรทัดนี้: กำหนดขนาดความกว้างสูงสุดที่ต้องการ (เช่น 500px หรือ 600px) */
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;   /* 👈 เพิ่มบรรทัดนี้: เพื่อจัดให้วิดีโออยู่กึ่งกลาง */
+}
+
+.caption {
+  margin-top: 10px;
+  font-size: 16px;
+  background-color: #264b39;
+  padding: 8px;
+  border-radius: 4px;
+  word-wrap: break-word;
+}
+
+/* ✅ Media Query สำหรับมือถือ */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .caption {
+    font-size: 14px;
+  }
+}
+
+/* ✅ Footer ให้เต็มความกว้างและเหมือน index */
+footer {
+  background: #1f1f1f;
+  text-align: center;
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Tutorial GNSS Viewer</h1>
+
+    <div class="step">
+        <video src="step1.webm" autoplay loop muted></video>
+        <div class="caption">ขั้นตอนที่ 1: ดาวน์โหลดแอป GNSS Viewer แล้วเปิดแอปขึ้นมา หลังจากนั้นแตะที่การตั้งค่าและปรับตั้งค่าทุกอย่างตามในวิดีโอ.</div>
+    </div>
+
+    <div class="step">
+        <video src="step2.webm" autoplay loop muted></video>
+        <div class="caption">ขั้นตอนที่ 2: กลับไปที่หน้าจอ GNSS จากนั้นแตะไอคอนถังขยะแล้วยืนยันเพื่อล้างข้อมูลที่ระบบบันทึกไว้ ถ้าทำถูกต้อง ค่าระยะทางควรเป็น 0 กม.</div>
+    </div>
+
+    <div class="step">
+        <video src="step3.webm" autoplay loop muted></video>
+        <div class="caption"> ขั้นตอนที่ 3: แตะปุ่มเริ่มบันทึก เมื่อใช้แอปนี้ในการบันทึกเสียง คุณต้องเปิดแอปทิ้งไว้ตลอดเวลาระหว่างกระบวนการ อย่าออกจากแอปหรือปิดหน้าจอ เพราะจะทำให้การบันทึกข้อมูลระหว่างการทดสอบหยุดลง ถ้าทำถูกต้อง ปุ่มบันทึกควรกระพริบสีเขียวตามที่แสดงในวิดีโอ<br><br>
+หมายเหตุ: คำว่า “Sats” หมายถึงจำนวนดาวเทียมที่โทรศัพท์ของคุณกำลังติดตามอยู่ ยิ่งมีดาวเทียมที่จับได้มาก ข้อมูลก็จะยิ่งแม่นยำขึ้น แต่ความแม่นยำยังขึ้นอยู่กับตัวรับสัญญาณของโทรศัพท์และสภาพแวดล้อมรอบตัวคุณตอนทดสอบด้วย
+</div>
+    </div>
+
+    <div class="step">
+        <video src="step4.webm" autoplay loop muted></video>
+        <div class="caption">ขั้นตอนที่ 4: หลังจากทดสอบรถของคุณแล้ว กดปุ่มบันทึกอีกครั้ง — ไฟสีเขียวจะหยุดกระพริบ ต่อไป กดที่แผนที่ แล้วกดปุ่ม GPX คุณสามารถแชร์และบันทึกไฟล์นี้ไปยังที่ไหนก็ได้ตามใจคุณ แค่นี้แหละ — ตอนนี้คุณก็มีไฟล์ .gpx พร้อมอัปโหลดแล้ว</div>
+    </div>
+</div>
+
+<footer>
+  © 2026 AOMMY PROJECT BY MR.NARUT
+</footer>
+
+</body>
+</html>

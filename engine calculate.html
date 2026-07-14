@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENGINE MODIFY ANALYSIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #313338; 
+            color: #dbdee1; 
+        }
+        
+        .discord-sidebar { 
+            background-color: #2b2d31; 
+        }
+        
+        .discord-card { 
+            background-color: #232428; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        
+        .discord-input { 
+            background-color: #1e1f22; 
+            border: 1px solid #1e1f22; 
+            color: #f2f3f5; 
+            border-radius: 4px; 
+            padding: 10px; 
+            width: 100%; 
+        }
+        
+        .discord-input:focus { 
+            border-color: #5865f2; 
+            outline: none; 
+        }
+        
+        .nav-item { 
+            cursor: pointer; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 5px; 
+            color: #949ba4; 
+        }
+        
+        .nav-item:hover, .nav-item.active { 
+            background-color: #3f4147; 
+            color: white; 
+        }
+        
+        .formula-box { 
+            background-color: rgba(0, 0, 0, 0.4); 
+            border-left: 4px solid #5865f2; 
+            padding: 15px; 
+            border-radius: 4px; 
+        }
+
+        /* สไตล์สำหรับ Summary Dashboard 9:16 */
+        #capture-area { 
+            width: 450px;
+            min-height: 800px; 
+            padding: 30px; 
+            background: linear-gradient(180deg, #232428 0%, #111214 100%);
+            border: 2px solid #5865f2;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .dash-section {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-left: 3px solid #5865f2;
+        }
+        
+        .dash-header { 
+            color: #5865f2; 
+            font-size: 10px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            margin-bottom: 5px; 
+            border-bottom: 1px solid #3f4147; 
+            padding-bottom: 2px; 
+        }
+        
+        .dash-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 11px; 
+            padding: 2px 0; 
+        }
+        
+        .dash-label { 
+            color: #949ba4; 
+        }
+        
+        .dash-val { 
+            color: #ffffff; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <div class="discord-sidebar w-72 p-4 flex-shrink-0 flex flex-col hidden md:flex">
+        <div class="text-xl font-bold mb-6 text-white flex items-center gap-2">
+            <i class="fa-solid fa-engine text-blue-500"></i> WNZY MODIFY ANALYSIS
+        </div>
+        <nav class="flex-grow">
+            <div class="nav-item active" onclick="showTab('tab-engine')">1. กำหนดเป้าหมาย & CC</div>
+            <div class="nav-item" onclick="showTab('tab-cr')">2. อัตราส่วนการอัด (CR)</div>
+            <div class="nav-item" onclick="showTab('tab-rod')">3. Rod Ratio (ก้านสูบ)</div>
+            <div class="nav-item" onclick="showTab('tab-gas')">4. สมการความเร็วลม (Vg)</div>
+            <div class="nav-item" onclick="showTab('tab-fuel')">5. ระบบน้ำมัน & หัวฉีด</div>
+            <div class="nav-item" onclick="showTab('tab-throttle')">6. สมการหาลิ้นเร่ง</div>
+            <div class="nav-item" onclick="showTab('tab-exhaust')">7. สมการหาขนาดท่อไอเสีย</div>
+            <div class="nav-item border-t border-gray-700 mt-2 pt-2 text-blue-400 font-bold" onclick="updateDashboard(); showTab('tab-summary');">
+                <i class="fa-solid fa-clipboard-list mr-2"></i> 8. สรุปรายละเอียดทั้งหมด
+            </div>
+        </nav>
+        <div class="text-xs text-gray-500 text-center italic">© 2026 AOMMY PROJECT BY MR.NARUT</div>
+    </div>
+
+    <div class="flex-grow overflow-y-auto p-6">
+        
+        <section id="tab-engine" class="tab-content">
+            <h1 class="text-2xl font-bold text-white mb-6">1. กำหนดเป้าหมาย & คำนวณ CC</h1>
+            <div class="discord-card p-6 border-l-4 border-blue-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-blue-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-gauge-high"></i> ข้อมูลสเปคเครื่องยนต์
+                        </h3>
+                        <div>
+                            <label class="text-xs text-gray-400">ขนาดลูกสูบ (Bore) [mm]</label>
+                            <input type="number" id="bore" class="discord-input" placeholder="เช่น 66" oninput="calcEngine()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-gray-400">ระยะชักเดิม [mm]</label>
+                                <input type="number" id="stroke-orig" class="discord-input" value="57.9" oninput="calcEngine()">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400">ระยะยืดชัก [mm]</label>
+                                <input type="number" id="stroke-plus" class="discord-input" placeholder="เช่น 7" oninput="calcEngine()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400">รอบเครื่องยนต์สูงสุด (RPM)</label>
+                            <input type="number" id="max-rpm" class="discord-input" placeholder="เช่น 10500" oninput="calcEngine()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-gray-400">ประเภทฝาสูบ</label>
+                                <select id="head-type" class="discord-input" onchange="calcEngine()">
+                                    <option value="2v">ฝา 2 วาล์ว</option>
+                                    <option value="4v" selected>ฝา 4 วาล์ว</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400">เชื้อเพลิง</label>
+                                <select id="fuel-type" class="discord-input" onchange="calcEngine()">
+                                    <option value="95">เบนซิน 95 / E10</option>
+                                    <option value="e20">แก๊สโซฮอล์ E20</option>
+                                    <option value="e85">แก๊สโซฮอล์ E85</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-black bg-opacity-20 p-8 rounded-lg text-center border border-gray-700">
+                        <p class="text-sm text-gray-400 mb-1">ระยะชักรวมที่ได้ (Total Stroke):</p>
+                        <p class="text-2xl text-white font-bold mb-6"><span id="res-total-stroke">0.00</span> mm</p>
+                        <p class="text-sm text-gray-400 mb-1">ปริมาตรกระบอกสูบรวม:</p>
+                        <p class="text-6xl text-blue-500 font-bold"><span id="res-cc">0</span> <span class="text-2xl">CC</span></p>
+                        <div class="mt-8 text-[11px] text-gray-500 space-y-2 italic text-left border-t border-gray-700 pt-4">
+                            <p class="font-bold text-gray-300">💡 วิธีคำนวณตามคัมภีร์:</p>
+                            <p>• CC: (ลูก × ลูก × ระยะชักรวม × π) ÷ 4000 </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-cr" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">2. อัตราส่วนการอัด (CR) แบบละเอียด</h1>
+            <div class="discord-card p-6 border-l-4 border-green-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-green-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-flask"></i> ปริมาตรเหนือฝาสูบ
+                        </h3>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">CC เบ้าฝาสูบ [cc]</label>
+                            <input type="number" id="cc-head" class="discord-input" placeholder="เช่น 13.4" oninput="calcEngine()">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">ระยะลูกตก ณ TDC [mm]</label>
+                            <input type="number" id="piston-drop" class="discord-input" placeholder="เช่น 2.5" oninput="calcEngine()">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">ความหนาปะเก็นฝาสูบ [mm]</label>
+                            <input type="number" id="gasket-thick" class="discord-input" placeholder="เช่น 0.5" oninput="calcEngine()">
+                        </div>
+                    </div>
+                    <div class="bg-black bg-opacity-30 p-8 rounded-lg text-center border border-gray-700">
+                        <p class="text-sm text-gray-400 mb-1">CC โดยรวมเหนือฝา:</p>
+                        <p class="text-2xl text-white font-bold mb-4"><span id="res-total-cc-top">0.00</span> cc</p>
+                        <p class="text-sm text-gray-400 mb-1">อัตราส่วนการอัด (CR):</p>
+                        <p id="res-cr-ratio-display" class="text-6xl font-bold text-white">0.0:1</p>
+                        <div id="cr-status-box" class="mt-4 p-3 rounded font-bold text-sm"></div>
+                        <div class="mt-6 text-[11px] text-gray-400 space-y-1 italic text-left border-t border-gray-700 pt-4">
+                            <p class="font-bold text-gray-300">💡 วิธีคำนวณตามคัมภีร์:</p>
+                            <p>• CC ลูกตก: (ลูก × ลูก × π × ระยะลูกตก) ÷ 4000 </p>
+                            <p>• CC ประเก็น: (ลูก × ลูก × π × ความหนา) ÷ 4000 </p>
+                            <p>• สูตร CR: (cc เครื่องยนต์ + cc ด้านบนฝา) ÷ cc ด้านบนฝา </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-rod" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">3. Rod Ratio & ความเร็วลูกสูบ (MPS)</h1>
+            <div class="discord-card p-6 border-l-4 border-purple-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-purple-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-link"></i> ข้อมูลก้านสูบ
+                        </h3>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">ความยาวก้านสูบ (Rod Length) [mm]</label>
+                            <input type="number" id="rod-length" class="discord-input" placeholder="กรอกความยาวก้านที่เลือก..." oninput="calcEngine()">
+                        </div>
+                        <div class="mt-6 p-4 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <p class="text-xs text-gray-400 mb-1">ความเร็วลูกสูบเฉลี่ย (MPS) ณ รอบสูงสุด:</p>
+                            <p class="text-3xl text-white font-bold"><span id="res-mps-val">0.00</span> m/s</p>
+                            <p id="mps-warning-text" class="text-[10px] mt-1 italic"></p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-black bg-opacity-30 p-8 rounded-lg text-center border border-gray-700">
+                        <p class="text-sm text-gray-400 mb-1">ค่า Rod Ratio ที่คำนวณได้:</p>
+                        <p id="res-rod-ratio-display" class="text-6xl font-bold text-white">0.00</p>
+                        <div id="rod-status-msg" class="mt-4 p-3 rounded text-sm font-bold text-center"></div>
+                    </div>
+                </div>
+                <div class="mt-6 p-5 formula-box">
+                    <h4 class="text-white font-bold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-400"></i> Rod Ratio สัมพันธ์กับ MPS อย่างไร?
+                    </h4>
+                    <p class="text-xs text-gray-300 mb-4">
+                        Rod Ratio ไม่ได้บอกแค่ทอร์คหรือรอบเครื่อง แต่สัมพันธ์โดยตรงกับ ความเร็วลูกสูบ (MPS) ซึ่งเป็นตัวชี้วัดความทนทาน
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+                            <p class="text-blue-400 font-bold mb-2">● ถ้าค่า MPS ต่ำ (ในรอบสูง)</p>
+                            <p class="text-gray-400">• เครื่องยนต์ยังมีโอกาสที่จะ "ปั่นรอบเพิ่ม" ได้อีก</p>
+                            <p class="text-gray-400">• ภาระของก้านสูบมีน้อย ความร้อนสะสมต่ำกว่า</p>
+                        </div>
+                        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+                            <p class="text-red-400 font-bold mb-2">● ถ้าค่า MPS สูง (ในรอบสูง)</p>
+                            <p class="text-gray-400">• **โอกาสพังสูง:** แรงเฉื่อยของลูกสูบมหาศาลอาจทำให้ก้านขาดหรือลูกแตก</p>
+                            <p class="text-gray-400">• Rod Ratio มาก จะช่วยลดแรงงัดข้างกระบอกสูบในจังหวะที่ลูกสูบวิ่งเร็วๆ</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-700 text-[11px] text-gray-500 italic text-center">
+                        สูตรคำนวณ MPS: (ระยะชักรวม × รอบสูงสุด) ÷ 30,000
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-gas" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">4. สมการความเร็วลม (Vg)</h1>
+            <div class="discord-card p-6 border-l-4 border-yellow-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-yellow-500 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-wind"></i> ตั้งค่าพอร์ตและวาล์ว (ฝา <span id="head-type-display-v">4V</span>)
+                        </h3>
+                        <div class="p-4 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <p class="text-blue-400 font-bold mb-2">วาล์วไอดี (Intake) - <span id="res-v-in-count-locked">2</span> ตัว</p>
+                            <input type="number" id="v-in-size" class="discord-input mt-1" placeholder="ระบุขนาดใบวาล์วไอดี..." oninput="calcEngine()">
+                        </div>
+                        <div class="p-4 bg-black bg-opacity-20 rounded border border-gray-700">
+                            <p class="text-red-400 font-bold mb-2">วาล์วไอเสีย (Exhaust) - <span id="res-v-out-count-locked">2</span> ตัว</p>
+                            <input type="number" id="v-out-size" class="discord-input mt-1" placeholder="เช่น 22" oninput="calcEngine()">
+                        </div>
+                    </div>
+                    <div class="space-y-4 flex flex-col justify-center">
+                        <div class="bg-black bg-opacity-30 p-5 rounded-lg border border-gray-700 text-center">
+                            <p class="text-xs text-gray-400 mb-1">ความเร็วลมไอดี ($V_g$):</p>
+                            <p id="res-vg-in" class="text-4xl font-bold text-white">0.00 m/s</p>
+                            <p id="vg-in-status" class="mt-2 text-xs font-bold"></p>
+                        </div>
+                        <div class="bg-black bg-opacity-30 p-5 rounded-lg border border-gray-700 text-center">
+                            <p class="text-xs text-gray-400 mb-1">ความเร็วลมไอเสีย ($V_g$):</p>
+                            <p id="res-vg-out" class="text-4xl font-bold text-white">0.00 m/s</p>
+                            <p id="vg-out-status" class="mt-2 text-xs font-bold"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-5 formula-box">
+                    <h4 class="text-white font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-circle-question text-yellow-500"></i> คำอธิบายเกี่ยวกับความเร็วลม</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
+                        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+                            <p class="text-blue-400 font-bold mb-2">📉 ถ้าความเร็วลมต่ำเกินไป</p>
+                            <p class="text-gray-400">• อากาศไม่มีแรงเฉื่อยพอที่จะยัดตัวเองเข้าห้องเผาไหม้</p>
+                            <p class="text-gray-400">• **ผลเสีย:** แรงบิดรอบต้นหาย รอบเครื่องกวาดช้า เครื่องรอรอบนาน</p>
+                        </div>
+                        <div class="p-4 bg-gray-800 rounded border border-gray-700">
+                            <p class="text-red-400 font-bold mb-2">📈 ถ้าความเร็วลมสูงเกินไป</p>
+                            <p class="text-gray-400">• เกิดความปั่นป่วน (Turbulence) จนกลายเป็นแรงต้านในพอร์ต</p>
+                            <p class="text-gray-400">• **ผลเสีย:** เครื่องยนต์จะ "อั้น" ในรอบสูง ความร้อนสะสมพุ่งสูงเร็วมาก</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-yellow-500 bg-opacity-10 rounded border border-yellow-700 text-[10px] text-yellow-200 italic leading-relaxed">
+                        ⚠️ **หมายเหตุสำคัญ:** หมวดภูมินี้เป็นเพียงข้อแนะนำเบื้องต้นตามสมการ Vg (Gas Velocity) เท่านั้น ในการทำจริงยังมีปัจจัยเรื่อง "รูปทรงพอร์ต", "องศาแคมชาร์ฟ", และ "สัมประสิทธิ์การไหล" ที่มีผลต่อสมรรถนะ ถือเป็นแนวทางเพื่อนำทางเบื้องต้น ที่เหลือคือการทดลองของผู้ใช้เอง!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-fuel" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">5. ระบบน้ำมัน & หัวฉีด</h1>
+            <div class="discord-card p-6 border-l-4 border-red-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-red-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-droplet"></i> ตั้งค่าการคำนวณหัวฉีด
+                        </h3>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">แรงม้าที่ต้องการ (Target HP)</label>
+                            <input type="number" id="target-hp" class="discord-input" placeholder="ระบุแรงม้าเป้าหมาย..." oninput="calcEngine()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] text-gray-400 italic">ค่า BSFC</label>
+                                <input type="number" id="input-bsfc" class="discord-input mt-1" step="0.01" oninput="calcEngine()">
+                                <p class="text-[9px] text-gray-500 mt-1">*เบนซิน: 0.45-0.50 | E85: 0.60-0.65</p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 italic">Duty Cycle</label>
+                                <input type="number" id="input-duty" class="discord-input mt-1" value="0.8" step="0.05" oninput="calcEngine()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-black bg-opacity-30 p-8 rounded-lg text-center border border-gray-700">
+                        <p class="text-sm text-gray-400 mb-1">ปริมาณน้ำมันที่ต้องการ:</p>
+                        <p id="res-injector-flow" class="text-5xl font-bold text-white">0.00</p>
+                        <p class="text-xs text-gray-500 mt-1">cc/min</p>
+                        <div id="injector-range-box" class="mt-6 p-4 rounded bg-red-500 bg-opacity-10 border border-red-900">
+                            <p class="text-[10px] text-gray-400 italic">แนะนำขนาดหัวฉีดประมาณ:</p>
+                            <p id="injector-range-text" class="text-lg font-bold text-red-400">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-5 formula-box">
+                    <h4 class="text-white font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-circle-info text-red-500"></i> สมการหาเบอร์หัวฉีด</h4>
+                    <p class="text-xs text-gray-300 italic mb-4 text-center">Flow (cc/min) = (HP × BSFC × 10.5) ÷ (จำนวนหัวฉีด × Duty Cycle)</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">• ค่า BSFC (Brake Specific Fuel Consumption) คือ อัตราการสิ้นเปลืองเชื้อเพลิงจำเพาะต่อกำลังเบรก เป็นตัวชี้วัดประสิทธิภาพการใช้เชื้อเพลิงของเครื่องยนต์ บอกปริมาณเชื้อเพลิง (น้ำหนัก) ที่เครื่องยนต์ใช้ในการผลิตกำลังออกมา 1 หน่วย (แรงม้า/กิโลวัตต์) ต่อเวลา (ต่อชั่วโมง) โดยค่า BSFC ที่ต่ำกว่าหมายถึงเครื่องยนต์มีประสิทธิภาพสูงกว่า เพราะใช้เชื้อเพลิงน้อยลงในการผลิตกำลังเท่าเดิม</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">• ค่า Duty Cycle (อัตราการทำงาน) ของหัวฉีดน้ำมันเชื้อเพลิง คือ ใช้เพื่อประเมินความเหมาะสมของขนาดหัวฉีด หาก Duty Cycle สูงเกินไป (เกิน 80-85%\) อาจเป็นสัญญาณว่าหัวฉีดเล็กเกินไปสำหรับเครื่องยนต์</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">⚠️ **หมายเหตุ:** หมวดนี้เป็นเพียงแนวทางเบื้องต้นเพื่อให้ "จ่ายน้ำมันทัน" ตามแรงม้าที่ต้องการ!</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-throttle" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">6. สมการหาลิ้นเร่ง (Throttle Body)</h1>
+            <div class="discord-card p-6 border-l-4 border-orange-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-orange-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-dot"></i> พารามิเตอร์การประจุไอดี</h3>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">ประสิทธิภาพการประจุไอดี (VE)</label>
+                            <input type="number" id="input-ve" class="discord-input" value="0.90" step="0.01" oninput="calcEngine()">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 italic">ความเร็วลมเป้าหมาย (v) [m/s]</label>
+                            <input type="number" id="input-v-target" class="discord-input" value="75" oninput="calcEngine()">
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-black bg-opacity-30 p-8 rounded-lg text-center border border-gray-700 text-center">
+                        <p class="text-sm text-gray-400 mb-1">ขนาดลิ้นเร่งที่แนะนำ:</p>
+                        <p id="res-throttle-dia" class="text-6xl font-bold text-orange-400">0.0</p>
+                        <p class="text-xs text-gray-500 mt-1">มิลลิเมตร (mm)</p>
+                    </div>
+                </div>
+                <div class="mt-6 p-5 formula-box">
+                    <h4 class="text-white font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-circle-info text-orange-500"></i> สมการหาลิ้นเร่ง</h4>
+                    <p class="text-xs text-gray-300 italic mb-4 text-center">Diameter (mm) = √((Vs × RPM × VE) ÷ (20 × v))</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">• ค่าประสิทธิภาพการประจุไอดี (Volumetric Efficiency - VE) คือ การวัดว่ากระบอกสูบมีอากาศเต็มมากน้อยเพียงใดในแต่ละรอบการทำงาน โดยเครื่องยนต์ทั่วไปมี VE ประมาณ 80%-95%</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">• ค่าความเร็วอากาศ (v) หน่วยเมตรต่อวินาที (m/s) คือ ค่าที่แสดงระยะทางที่อากาศเคลื่อนที่ได้ภายใน 1 วินาที เช่น (1 m/s) หมายถึง อากาศเคลื่อนที่ได้ 1 เมตรในเวลา 1 วินาที</p>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic text-center">
+                        ⚠️ **หมายเหตุ:** หมวดภูมินี้เป็นเพียงข้อแนะนำเบื้องต้นเพื่อควบคุมความเร็วอากาศไม่ให้เกิดความปั่นป่วนในท่อร่วมไอดี ที่เหลือคือการทดลองของผู้ใช้เอง!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-exhaust" class="tab-content hidden">
+            <h1 class="text-2xl font-bold text-white mb-6">7. สมการหาขนาดท่อไอเสีย (Exhaust Size)</h1>
+            <div class="discord-card p-6 border-l-4 border-gray-400">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col justify-center bg-black bg-opacity-30 p-8 rounded-lg text-center border border-gray-700">
+                        <p class="text-sm text-gray-400 mb-1">พื้นที่หน้าตัดที่คำนวณได้:</p>
+                        <p id="res-exhaust-area" class="text-4xl font-bold text-white">0.000</p>
+                        <p class="text-xs text-gray-500 mt-1">sq.in (ตารางนิ้ว)</p>
+                        <div class="mt-8 p-4 bg-gray-800 rounded border border-gray-600">
+                            <p class="text-sm text-gray-400 mb-1">ขนาดคอท่อแนะนำ:</p>
+                            <p id="res-exhaust-dia" class="text-5xl font-bold text-blue-400">0.0</p>
+                            <p class="text-xs text-gray-500 mt-1">มิลลิเมตร (mm)</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-gray-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-info"></i> คำอธิบายและข้อแนะนำ</h3>
+                        <p class="text-xs text-gray-300 leading-relaxed italic">
+                            สมการนี้ใช้หาขนาดคอท่อไอเสียเบื้องต้นเพื่อให้เกิดแรงดูด (Scavenging Effect) สูงสุด โดยระบบทำการแปลงหน่วย CC เป็น Cubic Inch อัตโนมัติเพื่อให้ผลลัพธ์ออกมาเป็นค่าสากล
+                        </p>
+                        <div class="p-4 bg-yellow-500 bg-opacity-10 rounded border border-yellow-700 text-[11px] text-yellow-500">
+                            ⚠️ **หมายเหตุ:** นี่เป็นเพียงแนวทางเบื้องต้นในการเริ่มสร้างสเต็ปท่อ ความแรงจริงขึ้นอยู่กับความสดของเครื่องและการระบายความร้อนของท่อที่ตีขึ้นมาใหม่!
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-5 formula-box">
+                    <p class="text-xs text-gray-300 italic text-center">Area (sq.in) = (Vs[ci] × RPM) ÷ 88,000</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-summary" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-white">8. SUMMARY DASHBOARD</h1>
+                <button onclick="captureDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 transition-all shadow-lg">
+                    <i class="fa-solid fa-camera"></i> PRINT SCREEN (9:16)
+                </button>
+            </div>
+
+            <div id="capture-area" class="shadow-2xl">
+                <div class="text-center mb-6 border-b border-gray-700 pb-4">
+                    <h2 class="text-xl font-bold text-white tracking-widest uppercase">Engine build data sheet</h2>
+                    <p class="text-[9px] text-blue-400 uppercase tracking-widest">WNZY MODIFY ANALYSIS</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="dash-section">
+                        <div class="dash-header">01. ENGINE DISPLACEMENT</div>
+                        <div class="dash-row"><span class="dash-label">Bore (ลูกสูบ)</span><span class="dash-val"><span id="d-bore">-</span> mm</span></div>
+                        <div class="dash-row"><span class="dash-label">Stroke (ระยะชัก)</span><span class="dash-val"><span id="d-stroke">-</span> mm</span></div>
+                        <div class="dash-row"><span class="dash-label">Max RPM (รอบสูงสุด)</span><span class="dash-val"><span id="d-max-rpm">-</span> RPM</span></div>
+                        <div class="dash-row"><span class="dash-label">Cylinder Head Type</span><span class="dash-val"><span id="d-head-type">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Total Volume</span><span class="dash-val text-blue-400"><span id="d-cc">-</span> CC</span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">02. COMPRESSION RATIO (CR)</div>
+                        <div class="dash-row"><span class="dash-label">CC เบ้าฝา / ลูกตก / ปะเก็น</span><span class="dash-val text-xs"><span id="d-cc-head">-</span> / <span id="d-p-drop">-</span> / <span id="d-g-thick">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Compression Ratio</span><span class="dash-val text-green-400" id="d-cr">-</span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">03. MECHANICAL SAFETY</div>
+                        <div class="dash-row"><span class="dash-label">Rod Length / Ratio</span><span class="dash-val"><span id="d-rod-len">-</span> mm / <span id="d-rod-rat">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Piston Speed (MPS)</span><span class="dash-val text-yellow-400"><span id="d-mps">-</span> m/s</span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">04. PORT VELOCITY (Vg)</div>
+                        <div class="dash-row"><span class="dash-label">วาล์ว ID / EX [mm]</span><span class="dash-val"><span id="d-vin">-</span> / <span id="d-vout">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Vg Intake / Exhaust</span><span class="dash-val text-xs"><span id="d-vg-in">-</span> / <span id="d-vg-out">-</span></span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">05. FUEL SYSTEM</div>
+                        <div class="dash-row"><span class="dash-label">Target HP / Fuel Type</span><span class="dash-val"><span id="d-hp">-</span> HP / <span id="d-fuel">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Injector Required</span><span class="dash-val text-red-400" id="d-inj">-</span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">06. INTAKE DIAMETER</div>
+                        <div class="dash-row"><span class="dash-label">Efficiency (VE) / Speed (v)</span><span class="dash-val"><span id="d-ve">-</span> / <span id="d-vt">-</span></span></div>
+                        <div class="dash-row"><span class="dash-label">Throttle Recommendation</span><span class="dash-val text-orange-400"><span id="d-thr">-</span> mm</span></div>
+                    </div>
+                    <div class="dash-section">
+                        <div class="dash-header">07. EXHAUST HEADER</div>
+                        <div class="dash-row"><span class="dash-label">Exhaust Area</span><span class="dash-val"><span id="d-exh-area">-</span> sq.in</span></div>
+                        <div class="dash-row"><span class="dash-label">Header Pipe ID</span><span class="dash-val text-blue-400 font-bold"><span id="d-exh-dia">-</span> mm</span></div>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-6 border-t border-gray-800 text-center">
+                    <p class="text-[10px] text-gray-300 font-bold mt-2 uppercase tracking-widest">© 2026 AOMMY PROJECT BY MR.NARUT</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if(event) event.currentTarget.classList.add('active');
+        }
+
+        let lastFuel = "";
+
+        function calcEngine() {
+            const bore = parseFloat(document.getElementById('bore').value) || 0;
+            const sOrig = parseFloat(document.getElementById('stroke-orig').value) || 0;
+            const sPlus = parseFloat(document.getElementById('stroke-plus').value) || 0;
+            const maxRpm = parseFloat(document.getElementById('max-rpm').value) || 0;
+            const headType = document.getElementById('head-type').value;
+            const fuel = document.getElementById('fuel-type').value;
+
+            const bsfcInput = document.getElementById('input-bsfc');
+            if (fuel !== lastFuel) { bsfcInput.value = (fuel === 'e85') ? 0.62 : 0.48; lastFuel = fuel; }
+
+            const totalStroke = sOrig + (sPlus * 2);
+            document.getElementById('res-total-stroke').innerText = totalStroke.toFixed(2);
+            const ccEngine = (bore * bore * totalStroke * Math.PI) / 4000;
+            document.getElementById('res-cc').innerText = Math.round(ccEngine);
+
+            const mpsVal = (totalStroke * maxRpm) / 30000;
+            document.getElementById('res-mps-val').innerText = mpsVal.toFixed(2);
+            const mpsWarning = document.getElementById('mps-warning-text');
+            if (mpsVal > 21) { mpsWarning.innerText = "🚨 โอกาสพังสูง!"; mpsWarning.className = "text-[10px] mt-1 text-red-500 font-bold italic"; }
+            else { mpsWarning.innerText = "🟢 ปั่นรอบได้อีก"; mpsWarning.className = "text-[10px] mt-1 text-green-500 italic"; }
+
+            const ccHead = parseFloat(document.getElementById('cc-head').value) || 0;
+            const pDrop = parseFloat(document.getElementById('piston-drop').value) || 0;
+            const gThick = parseFloat(document.getElementById('gasket-thick').value) || 0;
+            if (bore > 0) {
+                const totalCCTop = ccHead + ((bore * bore * Math.PI * pDrop) / 4000) + ((bore * bore * Math.PI * gThick) / 4000);
+                document.getElementById('res-total-cc-top').innerText = totalCCTop.toFixed(2);
+                if (totalCCTop > 0) {
+                    const cr = (ccEngine + totalCCTop) / totalCCTop;
+                    document.getElementById('res-cr-ratio-display').innerText = cr.toFixed(1) + ":1";
+                    const limits = { '95': { '2v': 11.0, '4v': 11.5 }, 'e20': { '2v': 12.0, '4v': 12.5 }, 'e85': { '2v': 13.5, '4v': 14.0 } };
+                    const safeLimit = limits[fuel] ? limits[fuel][headType] : 11.5;
+                    const statusBox = document.getElementById('cr-status-box');
+                    if (cr < 8.5) { statusBox.innerText = "⚠️ ต่ำเกินไป"; statusBox.className = "mt-4 p-3 rounded font-bold text-sm bg-yellow-500 bg-opacity-20 text-yellow-500"; }
+                    else if (cr <= safeLimit) { statusBox.innerText = `✅ ปลอดภัย (${fuel.toUpperCase()})`; statusBox.className = "mt-4 p-3 rounded font-bold text-sm bg-green-500 bg-opacity-20 text-green-500"; }
+                    else { statusBox.innerText = `🚨 อันตราย (เกิน ${safeLimit}:1)`; statusBox.className = "mt-4 p-3 rounded font-bold text-sm bg-red-500 bg-opacity-20 text-red-500"; }
+                }
+            }
+
+            const rodLength = parseFloat(document.getElementById('rod-length').value) || 0;
+            if (rodLength > 0 && totalStroke > 0) {
+                const rodRatio = rodLength / totalStroke;
+                document.getElementById('res-rod-ratio-display').innerText = rodRatio.toFixed(2);
+                const rodStatus = document.getElementById('rod-status-msg');
+                if (rodRatio < 1.5) { rodStatus.innerText = "เน้นทอร์ค (มุมงัดมาก)"; rodStatus.className = "mt-4 p-3 rounded text-sm font-bold bg-yellow-500 bg-opacity-20 text-yellow-500 text-center"; }
+                else { rodStatus.innerText = "เน้นปั่นรอบ (มุมงัดน้อย)"; rodStatus.className = "mt-4 p-3 rounded text-sm font-bold bg-blue-500 bg-opacity-20 text-blue-500 text-center"; }
+            }
+
+            document.getElementById('head-type-display-v').innerText = headType.toUpperCase();
+            const vInCount = (headType === '4v') ? 2 : 1;
+            const vOutCount = (headType === '4v') ? 2 : 1;
+            
+            const resVinLocked = document.getElementById('res-v-in-count-locked');
+            if(resVinLocked) resVinLocked.innerText = vInCount;
+            const resVoutLocked = document.getElementById('res-v-out-count-locked');
+            if(resVoutLocked) resVoutLocked.innerText = vOutCount;
+
+            const vInSize = parseFloat(document.getElementById('v-in-size').value) || 0;
+            const vOutSize = parseFloat(document.getElementById('v-out-size').value) || 0;
+            const pistonArea = (bore * bore * Math.PI) / 4;
+            
+            if (vInSize > 0 && mpsVal > 0) {
+                const vgIn = (pistonArea / ((vInSize * vInSize * Math.PI / 4) * vInCount)) * mpsVal;
+                document.getElementById('res-vg-in').innerText = vgIn.toFixed(2) + " m/s";
+                const stIn = document.getElementById('vg-in-status');
+                if (vgIn >= 75 && vgIn <= 85) { stIn.innerText = "Sweet Spot!"; stIn.className = "mt-2 text-xs font-bold text-green-500"; }
+                else if (vgIn > 90) { stIn.innerText = "อั้นรอบสูง!"; stIn.className = "mt-2 text-xs font-bold text-red-500"; }
+                else { stIn.innerText = "ย่านใช้งาน"; stIn.className = "mt-2 text-xs font-bold text-blue-400"; }
+            }
+            if (vOutSize > 0 && mpsVal > 0) {
+                const vgOut = (pistonArea / ((vOutSize * vOutSize * Math.PI / 4) * vOutCount)) * mpsVal;
+                document.getElementById('res-vg-out').innerText = vgOut.toFixed(2) + " m/s";
+                const stOut = document.getElementById('vg-out-status');
+                if (vgOut >= 85 && vgOut <= 100) { stOut.innerText = "คายไอเสียสมบูรณ์"; stOut.className = "mt-2 text-xs font-bold text-green-500"; }
+                else { stOut.innerText = "ย่านใช้งาน"; stOut.className = "mt-2 text-xs font-bold text-blue-400"; }
+            }
+
+            const targetHP = parseFloat(document.getElementById('target-hp').value) || 0;
+            const customBSFC = parseFloat(bsfcInput.value) || 0;
+            const customDuty = parseFloat(document.getElementById('input-duty').value) || 0.8;
+            if (targetHP > 0 && customBSFC > 0 && customDuty > 0) {
+                const injectorFlow = (targetHP * customBSFC * 10.5) / customDuty;
+                document.getElementById('res-injector-flow').innerText = injectorFlow.toFixed(2);
+                const minRange = Math.floor(injectorFlow / 10) * 10;
+                document.getElementById('injector-range-text').innerText = `${minRange} cc - ${minRange + 30} cc`;
+            }
+
+            const ve = parseFloat(document.getElementById('input-ve').value) || 0.90;
+            const vTarget = parseFloat(document.getElementById('input-v-target').value) || 75;
+            if (ccEngine > 0 && maxRpm > 0 && vTarget > 0) {
+                const throttleDia = Math.sqrt((ccEngine * maxRpm * ve) / (20 * vTarget));
+                document.getElementById('res-throttle-dia').innerText = throttleDia.toFixed(1);
+            }
+
+            if (ccEngine > 0 && maxRpm > 0) {
+                const ciEngine = ccEngine * 0.0610237;
+                const areaSqIn = (ciEngine * maxRpm) / 88000;
+                document.getElementById('res-exhaust-area').innerText = areaSqIn.toFixed(3);
+                const exhaustDiaMm = Math.sqrt((areaSqIn * 4) / Math.PI) * 25.4;
+                document.getElementById('res-exhaust-dia').innerText = exhaustDiaMm.toFixed(1);
+            }
+        }
+
+        function updateDashboard() {
+            document.getElementById('d-bore').innerText = document.getElementById('bore').value || "-";
+            document.getElementById('d-stroke').innerText = document.getElementById('res-total-stroke').innerText || "-";
+            document.getElementById('d-max-rpm').innerText = document.getElementById('max-rpm').value || "-";
+            // ดึงประเภทฝาสูบมาโชว์ (2V/4V)
+            document.getElementById('d-head-type').innerText = document.getElementById('head-type').value.toUpperCase();
+            document.getElementById('d-cc').innerText = document.getElementById('res-cc').innerText || "-";
+            document.getElementById('d-cc-head').innerText = document.getElementById('cc-head').value || "0";
+            document.getElementById('d-p-drop').innerText = document.getElementById('piston-drop').value || "0";
+            document.getElementById('d-g-thick').innerText = document.getElementById('gasket-thick').value || "0";
+            document.getElementById('d-cr').innerText = document.getElementById('res-cr-ratio-display').innerText || "-";
+            document.getElementById('d-rod-len').innerText = document.getElementById('rod-length').value || "-";
+            document.getElementById('d-rod-rat').innerText = document.getElementById('res-rod-ratio-display').innerText || "-";
+            document.getElementById('d-mps').innerText = document.getElementById('res-mps-val').innerText || "-";
+            document.getElementById('d-vin').innerText = document.getElementById('v-in-size').value || "-";
+            document.getElementById('d-vout').innerText = document.getElementById('v-out-size').value || "-";
+            document.getElementById('d-vg-in').innerText = document.getElementById('res-vg-in').innerText || "-";
+            document.getElementById('d-vg-out').innerText = document.getElementById('res-vg-out').innerText || "-";
+            document.getElementById('d-hp').innerText = document.getElementById('target-hp').value || "-";
+            document.getElementById('d-fuel').innerText = document.getElementById('fuel-type').value.toUpperCase() || "-";
+            document.getElementById('d-inj').innerText = (document.getElementById('res-injector-flow').innerText + " cc/min") || "-";
+            document.getElementById('d-ve').innerText = document.getElementById('input-ve').value || "-";
+            document.getElementById('d-vt').innerText = document.getElementById('input-v-target').value || "-";
+            document.getElementById('d-thr').innerText = document.getElementById('res-throttle-dia').innerText || "-";
+            document.getElementById('d-exh-area').innerText = document.getElementById('res-exhaust-area').innerText || "-";
+            document.getElementById('d-exh-dia').innerText = document.getElementById('res-exhaust-dia').innerText || "-";
+        }
+
+        function captureDashboard() {
+            const area = document.getElementById('capture-area');
+            html2canvas(area, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `WNZY_EngineBuildSheet_${new Date().getTime()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
